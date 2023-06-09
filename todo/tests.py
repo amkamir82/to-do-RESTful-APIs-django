@@ -3,6 +3,8 @@ from todo.models.user import User
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
+from django.contrib.auth.models import User
+from .models import Project, Task
 
 
 class SignupAPITest(APITestCase):
@@ -72,3 +74,54 @@ class AddProjectAPITest(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class ProjectModelTest(TestCase):
+
+    def setUp(self):
+        self.manager = User.objects.create_user(
+            username='manager',
+            password='password123',
+            email='manager@example.com',
+            role='Project Manager'
+        )
+        self.project = Project.objects.create(
+            name='Project 1',
+            description='This is project 1',
+            manager=self.manager
+        )
+
+    def test_project_creation(self):
+        self.assertEqual(self.project.name, 'Project 1')
+        self.assertEqual(self.project.description, 'This is project 1')
+        self.assertEqual(self.project.manager, self.manager)
+
+    def test_project_string_representation(self):
+        self.assertEqual(str(self.project), 'Project 1')
+
+
+class TaskModelTest(TestCase):
+
+    def setUp(self):
+        self.manager = User.objects.create_user(
+            username='manager',
+            password='password123',
+            email='manager@example.com',
+            role='Project Manager'
+        )
+        self.project = Project.objects.create(
+            name='Project 1',
+            description='This is project 1',
+            manager=self.manager
+        )
+        self.task = Task.objects.create(
+            name='Task 1',
+            project=self.project
+        )
+
+    def test_task_creation(self):
+        self.assertEqual(self.task.name, 'Task 1')
+        self.assertEqual(self.task.project, self.project)
+
+    def test_task_string_representation(self):
+        self.assertEqual(str(self.task), 'Task 1')
